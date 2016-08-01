@@ -1,0 +1,9 @@
+# 8/1/2016
+
+# Downloading the Chimp/Termite sequencing data:
+
+# JA16413 (run in: /data2/ed379/ChimpTerm/data/raw/sequencing_data/JA16413 on cbsufsrv5):
+../../../../scripts/download_UT_GSAF_from_AWS.sh "http://gsaf.s3.amazonaws.com/JA16413.SA16126.html?AWSAccessKeyId=AKIAIVYXWYWNPBNEDIAQ&Expires=1470685177&Signature=z2g0UKJUI%2FFELwMZJgzGZL7YD2c%3D"
+
+# JA16414 (run in: /data2/ed379/ChimpTerm/data/raw/sequencing_data/JA16414 on cbsufsrv5):
+../../../../scripts/download_UT_GSAF_from_AWS.sh "http://gsaf.s3.amazonaws.com/JA16414.SA16126.html?AWSAccessKeyId=AKIAIVYXWYWNPBNEDIAQ&Expires=1470685107&Signature=%2FmC00zlXa%2FH%2FbFpl20kVkDDGEa8%3D"
