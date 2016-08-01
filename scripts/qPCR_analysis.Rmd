@@ -1,0 +1,190 @@
+---
+layout: page
+title: Termite bacterial DNA extraction optimization
+subtitle: qPCR results
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+author: Emily Davenport
+---
+
+### Load required libraries:
+```{r}
+library(plyr)
+```
+
+### Set today's date:
+```{r}
+today <- Sys.Date()											
+today <- format(today, format="%m%d%y")
+```
+
+### Data set up: 
+
+Read in data from StepOnePlus qPCR machine and the plate set up:
+
+```{r}
+data <- read.table(file="../data/processed/FEMTO_BACTERIAL_DNA_data2_results_20160126ERD.txt", sep="\t", header=TRUE, stringsAsFactors=FALSE)
+plate <- read.table(file="../data/raw/plate_setup.txt", sep="\t", header=TRUE, stringsAsFactors=FALSE)
+```
+
+####Tidy the data: 
+
+Remove wells that weren't examined:
+```{r}
+data <- data[-which(data$Target.Name != "16S"),]
+data <- data[-grep(6, data$Well),]
+```
+
+Tidy up plate data by setting row names and column names:
+```{r}
+rownames(plate) <- plate[,1]
+plate <- plate[,-1]
+colnames(plate) <- gsub("X", "", colnames(plate))
+```
+
+Set sample names by cross referencing the StepOne output with the input plate orientation:
+```{r}
+sample.name <- rep(NA, dim(data)[1])
+for (i in 1:dim(data)[1]) {
+	r <- which(rownames(plate) == substr(data$Well[i], 1, 1))
+	c <- substr(data$Well[i], 2, 2)
+	sample.name[i] <- plate[r,c]
+}
+```
+
+Set sample type for each sample (standard curve (STD), no template control (NTC), sample (SAMPLE)):
+```{r}
+sample.type <- rep(NA, dim(data)[1])
+for (i in 1:length(sample.name)) {
+	if (grepl("NTC", sample.name[i])) {
+		sample.type[i] <- "NTC"
+	} else if (grepl("STD", sample.name[i])) {
+		sample.type[i] <- "STD"
+	} else {
+		sample.type[i] <- "SAMPLE"
+	}
+}
+```
+
+### Analysis
+
+Set up standard curve (set known DNA amounts from manufacturer (quantity) and the cycle threshold they were detected (STD.CT)):
+```{r}
+STD.rows <- which(sample.type == "STD")
+quantity <- as.numeric(ldply(strsplit(sample.name[STD.rows], "_"))$V2)
+STD.CT <- as.numeric(data$C_[STD.rows])
+```
+
+Run linear model to determine coefficients and goodness of fit for standard curve:
+```{r}
+std.curve <- lm(log10(quantity) ~ STD.CT)
+std.curve.sum <- summary(std.curve)
+```
+
+Display fit info:
+```{r}
+std.curve.sum
+```
+Note that the R-squared is `r std.curve.sum$r.squared`, which is fairly decent. We want to see R^2 > 0.99 as a general rule. As you can see in the standard curve plot below, it's the standards with the lowest input of DNA that are messing up the fit of the line. Since our samples are not that dilute, we should be very accurately measuring 16S content. 
+
+Use coefficients from the standard curve equation to determine quantity of bacterial DNA per sample:
+```{r}
+fitted <- sapply(as.numeric(data$C_), function(x) {std.curve$coefficients[1] + x*std.curve$coefficients[2]})
+```
+
+
+### Plots
+
+Set functions to determine point colors and shapes:
+```{r}
+plot.point.color <- function(x) {
+	if (grepl("STD", x)) {
+		return("red")
+	} else if (grepl("NTC", x)) {
+		return("green")
+	} else if (x == "1" | grepl("1_", x)) {
+		return("dodgerblue")
+	} else if (x == "2" | grepl("2_", x)) {
+		return("darkmagenta")
+	} else if (x == "3" | grepl("3_", x)) {
+		return("coral") 
+	} else {
+		return("cyan")
+	}
+}
+
+plot.point.shape <- function(x) {
+	if (grepl("STD", x) | grepl("NTC", x)) {
+		return(16)
+	} else if (grepl("_1:100", x)) {
+		return(0)
+	} else if (grepl("_1:10", x)) {
+		return(1)
+	} else {
+		return(2)
+	}
+}
+```
+
+Plot the standard curve (STDs are red - the line was estimated using their CT values):
+```{r}
+plot(STD.CT, log10(quantity), yaxt="n", col="red", pch=16, xlab="CT", ylab="quantity (ng)", main=paste0("qPCR Standard Curve\nr-squared = ", round(std.curve.sum$r.squared, 3)), xlim=c(15,40))
+axis(2, at = log10(quantity), labels=quantity)
+abline(std.curve, col="gray")
+```
+
+Add samples and NTC to curve:
+```{r}
+plot(STD.CT, log10(quantity), yaxt="n", col="red", pch=16, xlab="CT", ylab="quantity (ng)", main=paste0("qPCR Standard Curve\nr-squared = ", round(std.curve.sum$r.squared, 3)), xlim=c(15,40))
+axis(2, at = log10(quantity), labels=quantity)
+abline(std.curve, col="gray")
+not.STD <- which(sample.type != "STD")
+points(as.numeric(data$C_[not.STD]), fitted[not.STD], col=sapply(sample.name[not.STD], plot.point.color), pch=sapply(sample.name[not.STD], plot.point.shape))
+legend("topright", 
+	legend=c("standard curve", "sample 1", "sample 2", "sample 3", "sample 4", "undiluted", "diluted 1:10", "diluted 1:100"), 
+	pch=c(rep(16,5), sapply(c("nope", "_1:10", "_1:100"), plot.point.shape)), 
+	col=c("red", sapply(c("1","2","3","4"), plot.point.color), rep("gray", 3))
+)
+```
+
+Determine the concentration of bacterial DNA per sample:
+```{r}
+sample.results <- cbind(sample.name[which(sample.type=="SAMPLE")], fitted[which(sample.type=="SAMPLE")])
+colnames(sample.results) <- c("sample", "log10(ng)")
+ng <- sapply(as.numeric(sample.results[,2]), function(x) {10^x})
+mult <- c(1, 10, 100)
+ng_undiluted <- ng * mult
+ng_uL_undiluted <- ng_undiluted/2
+sample.results <- suppressWarnings(data.frame(sample.results, ng, ng_undiluted, ng_uL_undiluted))
+sample.results <- sample.results[order(sample.results[,1]),]
+```
+
+Make a barplot of all the samples, correcting for the dilution series:
+```{r}
+b <- barplot(sample.results$ng_uL_undiluted, col=sapply(c(rep("1",6), rep("2", 6), rep("3", 6), rep("4", 6)), plot.point.color), ylab="concentration (ng/uL)", xlab="sample", main="Input bacterial DNA into qPCR")
+axis(1, at=b[c(3,9,15,21),], labels=1:4)
+```
+The samples all had different total concentrations going, so we need to normalize the amount of bacterial DNA by the total amount of DNA. 
+
+Incorporate information about the total DNA concentration:
+```{r}
+starting.conc <- c(52.1, 38.4, 65.9, 53.6)
+sample.results$total_ng_nL <- rep(starting.conc, each=6)
+sample.results$proportion_bacterialDNA_of_total <- sample.results$ng_uL_undiluted/sample.results$total_ng_nL
+```
+
+Barplot of proportion of bacterial DNA of the total:
+```{r}
+barplot(sample.results$proportion_bacterialDNA_of_total*100, col=sapply(c(rep("1",6), rep("2", 6), rep("3", 6), rep("4", 6)), plot.point.color), ylab="% Bacterial DNA", xlab="sample", main="Bacterial DNA yield across trial samples")
+axis(1, at=b[c(3,9,15,21),], labels=1:4)
+```
+
+Write out table of results:
+```{r}
+write.table(sample.results, paste0("../results/qPCR/bacterial_DNA_concentrations_qPCR_",today,"ERD.txt"))
+```
+
+Record session information:
+```{r}
+sessionInfo()
+```
+
