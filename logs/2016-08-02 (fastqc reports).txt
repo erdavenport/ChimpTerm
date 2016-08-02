@@ -1,0 +1,49 @@
+# 8/2/16
+
+# Starting to get the ChimpTerm samples processed. 
+
+# FastQC on the files:
+
+# /workdir/ed379/ChimpTerm/data/raw/sequencing_data/JA16414:
+# Let's run fastqc on all of the files to look at quality:
+for i in *.fastq.gz
+do
+echo $i
+/programs/FastQC-0.11.5/fastqc $i
+done
+
+mv *fastqc* ../../../../results/1_FastQC/JA14814/
+
+# /workdir/ed379/ChimpTerm/data/raw/sequencing_data/JA16413:
+# Let's run fastqc on all of the files to look at quality:
+for i in *.fastq.gz
+do
+echo $i
+/programs/FastQC-0.11.5/fastqc $i
+done
+
+mv *fastqc* ../../../../results/1_FastQC/JA14813/
+
+
+
+# Playing with how to do read joining and prepping for QIIME since the samples are already demultiplexed
+
+# How long are the read lengths?
+zcat ITS-C-1_S1_L001_R1_001.fastq.gz | awk '{if(NR%4==2) print length($1)}' | sort -n | uniq -c > read_length.txt
+# 250bp
+
+# Source the qiime_bash file (from /workdir/ed379 in cbsuley:/workdir/)
+source qiime_bash
+
+# Test joining paired end file (from /workdir/ed379/ChimpTerm/data/raw/sequencing_data/JA16413):
+join_paired_ends.py -f ITS-C-1_S1_L001_R1_001.fastq.gz -r ITS-C-1_S1_L001_R2_001.fastq.gz -b ITS-C-1_S1_L001_I1_001.fastq.gz -o qiime_output/ -j 200
+
+cat fastqjoin.join.fastq  | awk '{if(NR%4==2) print length($1)}' | sort -n | uniq -c > read_length.txt
+
+# Not many reads retained, but then again that was the funky ITS data. Let's try this on the 16S data (from /workdir/ed379/ChimpTerm/data/raw/sequencing_data/JA16414):
+join_paired_ends.py -f 16S-C-1_S30_L001_R1_001.fastq.gz -r 16S-C-1_S30_L001_R2_001.fastq.gz -b 16S-C-1_S30_L001_I1_001.fastq.gz -o qiime_output/ -j 200
+
+# That kept 88% of the reads, so that's not bad-ish.
+
+
+
