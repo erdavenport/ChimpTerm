@@ -18,7 +18,7 @@ cd ../data/raw/sequencing_data/JA16414/
 for i in *.fastq.gz
 do
 echo -en "$i \t" >> $FILENAME
-LINES="$(cat $i | wc -l)"
+LINES="$(zcat $i | wc -l)"
 echo $((LINES/4)) >> $FILENAME
 done
 
