@@ -31,7 +31,7 @@ outpath <- "../data/processed/QIIME/1_join_paired_ends/"
 
 
 ##### Make script:
-script <- c("#!/bin/bash/")
+script <- c("#!/bin/bash")
 script <- c(script, "source qiime_config_1.9")
 for (i in 1:length(bFiles)) {
 	script <- c(script, paste0("join_paired_ends.py -f ", inpath, sequencingID[i], fend, " -r ", inpath, sequencingID[i], rend, " -b ", inpath, sequencingID[i], iend, " -o ", outpath, " -j 200"))
