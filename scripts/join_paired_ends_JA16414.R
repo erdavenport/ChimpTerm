@@ -31,15 +31,18 @@ outpath <- "../data/processed/QIIME/1_join_paired_ends/"
 
 
 ##### Make script:
+print("writing join_paired_ends_JA16414.sh")
 script <- c("#!/bin/bash")
-script <- c(script, "source qiime_config_1.9")
+script <- c(script, "source qiime_bash")
 for (i in 1:length(bFiles)) {
-	script <- c(script, paste0("join_paired_ends.py -f ", inpath, sequencingID[i], fend, " -r ", inpath, sequencingID[i], rend, " -b ", inpath, sequencingID[i], iend, " -o ", outpath, " -j 200"))
+	no <- paste0(outpath, sequencingID[i],"/") # Create new out path where folder is labeled by sample ID
+	script <- c(script, paste0("mkdir ", no))
+	script <- c(script, paste0("join_paired_ends.py -f ", inpath, sequencingID[i], fend, " -r ", inpath, sequencingID[i], rend, " -b ", inpath, sequencingID[i], iend, " -o ", no, " -j 200"))
 }
 
-
-
-##### Write out script:
+# Write out join paired end script:
 write.table(script, "join_paired_ends_JA16414.sh", sep="\n", quote=FALSE, col.names=FALSE, row.names=FALSE)
+
+
 
 print("DONE!")
