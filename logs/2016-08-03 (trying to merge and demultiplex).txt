@@ -1,0 +1,32 @@
+# 8/3/16
+
+# Count the number of reads in each of the demultiplexed fastq files:
+
+# Make directory to hold results:
+mkdir ../results/2_general_info/
+
+# Count the number of reads in the demultiplexed files:
+./count_reads_in_original_fastq_files_JA14814.sh
+
+# Save summary table and plot of the number of reads per file:
+./summarize_reads_per_sample.R 
+
+# Create table of the sample names, file names, and barcodes (since the sequencing center didn't sent us barcode information):
+./pull_barcode_info_from_sequencing_files.R \
+	--seq_path=../data/raw/sequencing_data/JA16414/ \
+	--out=../data/processed/1_general_sample_info/table_barcodes_JA16414.txt
+
+# Multiple samples have the same barcode, so can't smoosh all the files together
+
+# First, source qiime_bash on cbsuley:
+source qiime_bash
+
+# Instead, try multiple_split_libraries_fastq.py:
+multiple_split_libraries_fastq.py \
+	-i ../data/raw/sequencing_data/JA16414 \
+	-o ../data/processed/QIIME/1_split_libraries \
+	--demultiplexing_method sampleid_by_file \
+	
+# Just kidding, need to merge paired end reads first
+
+# Run R script to create script that will merge paired end reads:
