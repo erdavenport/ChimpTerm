@@ -1,0 +1,47 @@
+# 8/5/16 
+
+# Trying out 1. merging the paired-end reads and 2. renaming using the multiple_split_libraries.py script on a single file before scaling up:
+
+# This is all scratch:
+source qiime_config_1.9
+join_paired_ends.py -f ../data/raw/sequencing_data/JA16414/16S-C-1_S30_L001_R1_001.fastq.gz -r ../data/raw/sequencing_data/JA16414/16S-C-1_S30_L001_R2_001.fastq.gz -b ../data/raw/sequencing_data/JA16414/16S-C-1_S30_L001_I1_001.fastq.gz -o ../data/processed/QIIME/1_join_paired_ends/ -j 200
+
+mkdir 16S-C-1_S30_L001
+mv *.fastq 16S-C-1_S30_L001
+
+cd 16S-C-1_S30_L001
+mv fastqjoin.join_barcodes.fastq 16S-C-1_S30_L001_I1_001.fastq
+mv fastqjoin.join.fastq 16S-C-1_S30_L001_R1_001.fastq
+
+# Can't get multiple to work right (keeps combining the index reads with the forward reads, blurgle)
+multiple_split_libraries_fastq.py \
+	-i ../data/processed/QIIME/1_join_paired_ends/16S-C-1_S30_L001/ \
+	-o ../data/processed/QIIME/2_split_libraries \
+	--demultiplexing_method sampleid_by_file \
+
+# This works though! Scale her up...
+split_libraries_fastq.py \
+	-i ../data/processed/QIIME/1_join_paired_ends/16S-C-1_S30_L001/16S-C-1_S30_L001_R1_001.fastq \
+	-o ../data/processed/QIIME/2_split_libraries \
+	-m ../data/processed/QIIME/1_join_paired_ends/16S-C-1_S30_L001/16S-C-1_S30_L001_map.txt \
+	-q 25 \
+	--barcode_type not-barcoded \
+	--sample_ids 16S-C-1
+	
+# End of scratch
+
+# Join ends:
+ ./join_paired_ends_JA16414.sh
+ 
+# Create script to run split_library_fastq.py on all files individually:
+./split_libraries_fastq_JA16414.R 
+
+# Run the shell script that generated:
+chmod +x split_by_library_JA16414.sh 
+./split_by_library_JA16414.sh 
+
+# Concatenate all those fastqs together:
+find ../data/processed/QIIME/2_split_libraries/ -name "seqs.fna" -exec cat {} \; > ../data/processed/QIIME/2_split_libraries/16414_seqs.fna
+
+# How many reads per sample?
+find ../data/processed/QIIME/2_split_libraries/ -name "seqs.fna" -exec wc -l {} \;
