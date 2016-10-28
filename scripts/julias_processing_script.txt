@@ -1,0 +1,33 @@
+# Julia's processing script:
+
+#!/bin/bash
+#$ -N qiime_test
+#$ -o qiime_test.$JOB_ID
+#$ -j y
+#$ -M jkg59@cornell.edu
+#$ -m be
+#$ -pe bscb 2
+#$ -l h_rt=05:00:00
+#$ -q regular.q@cbsubscb02
+mkdir -p /SSD/$USER/$JOB_ID
+mkdir /SSD/jkg59/tmp/
+cd /SSD/$USER/
+cp -nR /home/jkg59/software/bin .
+cp -nR /home/jkg59/software/lib .
+cp -nR /home/jkg59/software/include .
+cp -nR /home/jkg59/software/share .
+cp -nR /home/jkg59/gg_8_13 .
+setenv QIIME_CONFIG_FP /home/jkg59/software/QIIME_res/qiime_config
+setenv PATH "/SSD/jkg59/bin":$PATH
+setenv TMPDIR /SSD/jkg59/tmp/
+cd /SSD/$USER/$JOB_ID
+scp jkg59@rs-bt-leylab01.biotech.cornell.edu:/home/local/CORNELL/jkg59/julia_files/TwinsUK/Miseq/TwinsUKPlate9/Undetermined_* .
+scp jkg59@rs-bt-leylab01.biotech.cornell.edu:/home/local/CORNELL/jkg59/julia_files/TwinsUK/Miseq/mapping_files/twinsUKmiseqplate9map.txt .
+ls
+join_paired_ends.py -f Undetermined_S0_L001_R1_001.fastq.gz -r Undetermined_S0_L001_R2_001.fastq.gz -b Undetermined_S0_L001_I1_001.fastq.gz -o qiime_output/ -j 200
+split_libraries_fastq.py -i qiime_output/fastqjoin.join.fastq -o qiime_output/splitlibraries_outq25 -m  twinsUKmiseqplate9map.txt -b qiime_output/fastqjoin.join_barcodes.fastq -q 25 --rev_comp_mapping_barcodes
+pick_closed_reference_otus.py -i qiime_output/splitlibraries_outq25/seqs.fna -r /SSD/jkg59/gg_8_13/97_otus.fasta -t /SSD/jkg59/gg_8_13/97_otu_taxonomy.txt -o qiime_output/pickotus_97ID_closed_gg_8_13
+scp -r qiime_output jkg59@rs-bt-leylab01.biotech.cornell.edu:/home/local/CORNELL/jkg59/julia_files/TwinsUK/Miseq/TwinsUKPlate9_1.8_CBSU/
+#rm -r /SSD/$USER
+rm -r /SSD/$USER/$JOB_ID
+#rm -r /SSD/jkg59/tmp/
