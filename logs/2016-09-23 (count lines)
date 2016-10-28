@@ -1,0 +1,2 @@
+# How many reads per sample?
+find ../data/processed/QIIME/1_join_paired_ends/ -name "fastqjoin.join.fastq" -exec wc -l {} \; > ../results/2_general_info/reads_per_file_after_join_paired_ends_JA14814_2016-08-23.txt
