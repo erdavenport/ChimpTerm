@@ -1,0 +1,9 @@
+export PATH=/workdir/jkg59/QIIME_1.9_test/bin:/workdir/jkg59/QIIME_1.9_test//2014/bin/x86_64-linux:$HOME/bin:$PATH
+export R_LIBS=/workdir/jkg59/QIIME_1.9_test/R_libs/:/workdir/jkg59/QIIME_1.9_test/lib64/R/lib
+export R_HOME="/workdir/jkg59/QIIME_1.9_test/lib64/R/"
+export PNG_DIR=/workdir/jkg59/QIIME_1.9_test/
+export QIIME_CONFIG_FP=/workdir/ed379/qiime_config_1.9
+export TMPDIR=/workdir/ed379/tmp/
+export LD_LIBRARY_PATH=/workdir/jkg59/QIIME_1.9_test/lib
+export CPLUS_INCLUDE_PATH=/workdir/jkg59/QIIME_1.9_test/include
+export C_INCLUDE_PATH=/workdir/jkg59/QIIME_1.9_test/include
