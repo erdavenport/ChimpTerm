@@ -1,0 +1,26 @@
+# 11/29/16
+
+# Figuring out next steps for the ChimpTerm project
+
+# Concatenate all those fastqs together:
+find ../data/processed/QIIME/2_split_libraries/ -name "seqs.fna" -exec cat {} \; > ../data/processed/QIIME/2_split_libraries/16414_seqs.fna
+
+# How many reads per sample?
+find ../data/processed/QIIME/2_split_libraries/ -name "seqs.fna" -exec wc -l {} \; > ../results/2_general_info/reads_per_file_after_split_libraries_JA14814_2016-08-23.txt
+
+
+# Update sci pi on hammer
+
+module purge
+module load python/2.7.8
+export PYTHONPATH=/usr/
+pip install -Iv scipy==0.18.0 --user  --upgrade --ignore-installed
+module load qiime
+
+mkdir ../data/processed/QIIME/3_open_ref_otus/
+
+# Run open reference picking procedure
+pick_open_reference_otus.py -i ../data/processed/QIIME/2_split_libraries/16414_seqs.fna -o ../data/processed/QIIME/3_open_ref_otus/open_ref_otus_16414 -a -O 8
+
+# convert to text
+biom convert -i ../data/processed/QIIME/3_open_ref_otus/open_ref_otus_16414/otu_table_mc2.biom -o otutable.txt --to-tsv --header-key taxonomy
