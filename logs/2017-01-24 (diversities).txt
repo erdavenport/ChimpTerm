@@ -36,7 +36,8 @@ module load qiime
 
 summarize_taxa_through_plots.py -i otu_table_mc2_w_tax.biom -o summ_taxa_not_rarefied
 
-
+#Merge OTU table and summarized taxa files
+merge_otu_tables.py -i summ_taxa_not_rarefied/TwinsUK_Batch3_OTU_table_w_tax_L2.biom,summ_taxa_not_rarefied/TwinsUK_Batch3_OTU_table_w_tax_L3.biom,summ_taxa_not_rarefied/TwinsUK_Batch3_OTU_table_w_tax_L4.biom,summ_taxa_not_rarefied/TwinsUK_Batch3_OTU_table_w_tax_L5.biom,summ_taxa_not_rarefied/TwinsUK_Batch3_OTU_table_w_tax_L6.biom,TwinsUK_Batch3_OTU_table_w_tax.biom -o TwinsUK_Batch3_OTU_table_sumtax_L2_L6.biom
 
 
 
