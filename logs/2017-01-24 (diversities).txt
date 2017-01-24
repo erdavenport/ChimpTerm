@@ -1,0 +1,42 @@
+# 2017-01-24
+
+# Next steps for Chimp Term: 
+
+#Calculate stats for OTU table:
+biom summarize-table -i otu_table_mc2_w_tax.biom  -o otu_table_mc2_w_tax_stats.txt 
+
+# Make mapping files (on Dropbox). After this is run, add a # to the beginning of the header line:
+make_mapping_file_chimp_term.R
+
+
+
+
+# Running, maybe:
+# Beta diversity rarefied to 3700
+beta_diversity_through_plots.py -i otu_table_mc2_w_tax.biom -o beta_diversity_e3700 -m ../../mapping_file_ChimpTerm_sequenced_only.txt --color_by_all_fields -t rep_set.tre -p param.txt -e 3700 -a -O 8 -f
+
+# Alpha diversity:
+alpha_rarefaction.py -i otu_table_mc2_w_tax.biom -m ../../mapping_file_ChimpTerm_sequenced_only.txt -o alpha_diversity_e3700 -p param.txt -n 37 -a -O 12 -t rep_set.tre -e 3700 --retain_intermediate_files
+
+
+
+
+
+
+# NOT DONE YET, because of cluster issue	
+#Summarize taxa on non rarefied table
+# Need to do this: https://groups.google.com/forum/#!searchin/qiime-forum/no$20$24DISPLAY$20/qiime-forum/6srHDScyh_0/yVJQfjo1V-EJ
+# summarize_taxa_through_plots.py requires an older verion of matplotlib, which I can't get to load correctly. There is a ticket open with the cluster people to fix the issue.
+module purge
+module load python/2.7.8
+export PYTHONPATH=/usr/
+pip install -Iv matplotlib==1.4.3 --user 
+module load qiime
+
+
+summarize_taxa_through_plots.py -i otu_table_mc2_w_tax.biom -o summ_taxa_not_rarefied
+
+
+
+
+
