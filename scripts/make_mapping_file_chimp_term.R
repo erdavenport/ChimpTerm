@@ -52,7 +52,7 @@ term_log$sample_type <- "termite"
 log <- rbind(chimp_log2, term_log)
 
 # Add sampleID to table:
-log$SampleID <- log$seqID_16S
+log$SampleID <- gsub("_", "-", log$seqID_16S)
 
 # Reorder columns:
 log2 <- log[,c("SampleID", 
