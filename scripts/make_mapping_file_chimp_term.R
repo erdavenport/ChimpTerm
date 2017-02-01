@@ -52,16 +52,7 @@ term_log$sample_type <- "termite"
 log <- rbind(chimp_log2, term_log)
 
 # Add sampleID to table:
-sampleID <- rep(NA, dim(log)[1])
-sampleNoNumber <- unlist(strsplit(samples, split="_"))[seq(1,2*length(samples),2)]
-sampleNoNumber <- gsub("-", "_", sampleNoNumber)
-for (i in 1:length(sampleNoNumber)) {
-	ind <- which(log$seqID_16S == sampleNoNumber[i])
-	if (length(ind) == 1) {
-		sampleID[ind] <- samples[i]
-	}
-}
-log$SampleID <- sampleID
+log$SampleID <- log$seqID_16S
 
 # Reorder columns:
 log2 <- log[,c("SampleID", 
